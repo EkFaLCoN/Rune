@@ -16,17 +16,28 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
 
+      - name: Show repo structure
+        run: find "$GITHUB_WORKSPACE" -maxdepth 5
+
       - name: Build with Maven
         run: |
-          POM_DIR=$(find "$GITHUB_WORKSPACE" -maxdepth 4 -name "pom.xml" -exec dirname {} \; | head -n 1)
-          echo "Bulunan klasör: $POM_DIR"
+          set -e
+          POM_PATH=$(find "$GITHUB_WORKSPACE" -type f -name "pom.xml" | head -n 1)
+          if [ -z "$POM_PATH" ]; then
+            echo "pom.xml bulunamadı!"
+            exit 1
+          fi
+          POM_DIR=$(dirname "$POM_PATH")
+          echo "Bulunan pom.xml: $POM_PATH"
           cd "$POM_DIR"
+          pwd
+          ls -la
           mvn -B package
 
       - name: Find jar
         id: findjar
         run: |
-          JAR_PATH=$(find "$GITHUB_WORKSPACE" -name "RuneSystem.jar" -path "*/target/*" | head -n 1)
+          JAR_PATH=$(find "$GITHUB_WORKSPACE" -type f -name "RuneSystem.jar" -path "*/target/*" | head -n 1)
           echo "jar_path=$JAR_PATH" >> "$GITHUB_OUTPUT"
           echo "Bulunan jar: $JAR_PATH"
 
